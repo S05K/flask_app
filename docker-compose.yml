@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: 'postgresql://sumit:password@db:5432/flask_db'
+    command: >
+      bash -c "flask db upgrade && python run.py"
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: sumit
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: flask_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+    driver: local

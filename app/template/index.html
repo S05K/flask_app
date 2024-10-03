@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!-- Coding By CodingNepal - codingnepalweb.com -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ===== Iconscout CSS ===== -->
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css" />
+    <!-- ===== CSS ===== -->
+    <!-- <link rel="stylesheet" href="style.css" /> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>Registration Form</title>
+  </head>
+  <body>
+    <div class="register-container">
+      <h2>Register</h2>
+      <form id="registerForm">
+          <div class="input-group">
+              <input type="text" id="username" required>
+              <label for="username">Username</label>
+          </div>
+          <div class="input-group">
+              <input type="email" id="email" required>
+              <label for="email">Email</label>
+          </div>
+          <div class="input-group">
+              <input type="password" id="password" required>
+              <label for="password">Password</label>
+          </div>
+          <div class="actions">
+              <button type="submit">Register</button>
+          </div>
+      </form>
+      <div class="links">
+          <a href="#">Already have an account? Log in</a>
+      </div>
+  </div>
+
+       
+  </body>
+</html>
