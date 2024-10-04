@@ -12,6 +12,18 @@ services:
     command: >
       bash -c "flask db upgrade && python run.py"
 
+  celery:
+    build: .
+    command: "celery -A app.celery worker --loglevel=info"
+    volumes:
+        - .:/usr/src/app:ro
+
+  redis:
+      image: redis
+      ports:
+          - '6379:6379'
+
+
   db:
     image: postgres:13
     environment:

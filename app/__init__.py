@@ -8,6 +8,8 @@ from flask_bcrypt import Bcrypt
 from flask_mail import Mail
 import os
 from dotenv import load_dotenv
+from celery import Celery
+
 
 # Initialize Flask extensions
 app = Flask(__name__,template_folder='template')
@@ -35,8 +37,36 @@ bcrypt = Bcrypt(app)
 # For initializing JWT Manager
 jwt = JWTManager(app)
 
+
+# Celery configuration (Broker and Backend)
+app.config['CELERY_BROKER_URL'] = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')
+app.config['CELERY_RESULT_BACKEND'] = os.getenv('CELERY_RESULT_BACKEND', 'redis://redis:6379/0')
+
+# Initialize Celery
+def make_celery(app):
+    celery = Celery(
+        app.import_name,
+        broker=app.config['CELERY_BROKER_URL'],
+        backend=app.config['CELERY_RESULT_BACKEND']
+    )
+    # celery.conf.update(app.config)
+    
+    # Allow Celery tasks to use Flask application context
+    class ContextTask(celery.Task):
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return self.run(*args, **kwargs)
+    
+    celery.Task = ContextTask
+    return celery
+
+celery = make_celery(app)
+
+
 # Import your API routes here
 from .routes import PlayerView
+
+
 
 
 def create_app():

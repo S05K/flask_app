@@ -5,7 +5,7 @@ from . import api
 from . import app
 from flask import request
 from . import bcrypt
-from utils.utils import make_response, send_email
+from utils.utils import make_response, validate_owner_data
 from . import db, mail
 from flask_mail import Message
 from utils.utils import validate_user_data
@@ -14,6 +14,7 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies, verify_jwt_in_request, exceptions as jwt_exceptions
 )
 from flask import render_template
+from tasks import send_email
 
 @app.route("/")
 def home():
@@ -74,14 +75,16 @@ class OwnerRegisterView(Resource):
             role = 'owner'
             money = 100000
             password = data.get('password',None)
-            team_name = data.get('team_name',None)
-
-            if not team_name:
-                return make_response("Error",data={"user": "If you are a owner then you have to give your team name"}, status_code=400)
+            team_name = data.get('team_name')
             
             validation_error = validate_user_data(data)
+            print(validation_error)
+            validate_owner = validate_owner_data(data)
+            
             if validation_error:
                 return make_response("Error",data={"user": validation_error}, status_code=400)
+            if validate_owner:
+                return make_response("Error",data={"owner": validate_owner}, status_code=400)
             else:
                 user = User(
                         name = name,
@@ -133,6 +136,8 @@ class HomeView(Resource):
         current_user = get_jwt_identity()
         print(current_user)
         user = User.query.filter_by(id=current_user).first()
+        player = PlayerDetail.query.all()
+        print(player)
         if user.is_owner():
             owner = user.owner_detail
             owner_data = {'owner_id':owner[0].id, 'money':owner[0].money, 'purchased_player_ids':owner[0].player_ids, 'team_name':owner[0].team_name}
@@ -173,6 +178,7 @@ class PlayerFilterApi(Resource):
                 players = [i.to_dict() for i in total_players]
                 return make_response("success", "Logged-in", data={"players":players},status_code=200)
             else:
+                player = PlayerDetail.query.all()
                 return make_response("success", "There is no player for your range please select another range", status_code=404)
         else:
             return make_response("Error", "Not a owner", status_code=400)
@@ -210,7 +216,7 @@ class PurchasePlayerApi(Resource):
                 db.session.add(player)
                 db.session.commit()
 
-                send_email(email,user.email,user.name)
+                send_email.delay(email,user.email,user.name)
                 return make_response("success", "Player is purchased", data={"price":player.price},status_code=200)
 
 

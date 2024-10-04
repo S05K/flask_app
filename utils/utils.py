@@ -1,6 +1,6 @@
 from flask import Response
 import json
-from app.models import User, ROLE_CHOICES
+from app.models import User, ROLE_CHOICES, OwnerDetail
 from app import mail
 from flask_mail import Message
 
@@ -16,7 +16,7 @@ def validate_user_data(data):
     name = data.get("name", None)
     password = data.get("password", None)
     # role = data.get('role')
-    team_name = data.get("team_name")
+    
 
     if name is None or str(name).strip() == "" or name != str(name):
         return {'Error': 'Please enter a valid name'}
@@ -41,18 +41,17 @@ def validate_user_data(data):
 
     return None
 
+def validate_owner_data(data):
+     team_name = data.get("team_name")
+     if not team_name:
+        return {'Error':'If you are a owner then you have to give your team name'}
+     
+     if OwnerDetail.query.filter_by(team_name=team_name).first():
+        return {'Error' :'This team is alredy registered please enter a unique team_name'}   
 
-'''
-Method for sending email while purchasing 
-player via owner
-'''
+     return None         
 
-def send_email(player_email,owner_email,owner_name):
-            msg = Message('Hello', 
-                          sender ='sumitraghuvanshi413@gmail.com',
-                          recipients = [player_email]
-                          ) 
-            msg.body = f'You are sold to the owner {owner_name} and here are the contact details of your owner {owner_email}'
-            mail.send(msg)
+
+
 
 
